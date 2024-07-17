@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+  <appender name="Remote" class="io.github.oliviercailloux.rmi.logback.RemoteClientAppender" />
+
+  <root level="debug">
+    <appender-ref ref="Remote" />
+  </root>  
+</configuration>

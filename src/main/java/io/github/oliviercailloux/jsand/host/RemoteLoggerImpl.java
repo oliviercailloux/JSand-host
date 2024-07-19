@@ -1,5 +1,6 @@
-package io.github.oliviercailloux.rmi;
+package io.github.oliviercailloux.jsand.host;
 
+import io.github.oliviercailloux.jsand.common.RemoteLoggerService;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.rmi;
+package io.github.oliviercailloux.jsand.common;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

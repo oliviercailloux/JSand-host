@@ -1,9 +1,10 @@
-package io.github.oliviercailloux.rmi.logback;
+package io.github.oliviercailloux.jsand.containerized.logback;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import com.google.common.base.VerifyException;
-import io.github.oliviercailloux.rmi.RemoteLoggerService;
+import io.github.oliviercailloux.jsand.common.JSand;
+import io.github.oliviercailloux.jsand.common.RemoteLoggerService;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -12,15 +13,13 @@ import java.time.Instant;
 import org.slf4j.event.Level;
 
 public class RemoteClientAppender extends AppenderBase<ILoggingEvent> {
-  private static final String REGISTRY_HOST = "host.docker.internal";
-  
   private RemoteLoggerService remoteLogger;
 
   @Override
   public void start() {
     Registry registryJ1;
     try {
-      registryJ1 = LocateRegistry.getRegistry(REGISTRY_HOST, Registry.REGISTRY_PORT);
+      registryJ1 = LocateRegistry.getRegistry(JSand.REGISTRY_HOST, Registry.REGISTRY_PORT);
       remoteLogger = (RemoteLoggerService)registryJ1.lookup(RemoteLoggerService.SERVICE_NAME);
     } catch (RemoteException|NotBoundException e) {
       throw new RuntimeException(e);

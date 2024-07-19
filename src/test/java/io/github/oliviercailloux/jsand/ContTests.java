@@ -13,9 +13,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.MoreFiles;
 import io.github.oliviercailloux.jaris.io.CloseablePath;
 import io.github.oliviercailloux.jaris.io.PathUtils;
-import io.github.oliviercailloux.jsand.DockerHelper.ConnectivityMode;
-import io.github.oliviercailloux.rmi.RemoteLoggerImpl;
-import io.github.oliviercailloux.rmi.RemoteLoggerService;
+import io.github.oliviercailloux.jsand.common.ReadyService;
+import io.github.oliviercailloux.jsand.common.RemoteLoggerService;
+import io.github.oliviercailloux.jsand.host.DockerHelperDraft;
+import io.github.oliviercailloux.jsand.host.ExecutedContainer;
+import io.github.oliviercailloux.jsand.host.ReadyServiceImpl;
+import io.github.oliviercailloux.jsand.host.RemoteLoggerImpl;
+import io.github.oliviercailloux.jsand.host.DockerHelperDraft.ConnectivityMode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,11 +55,7 @@ public class ContTests {
   }
 
   @Test
-  void testLog() throws Exception {
-    Path hostCodeDir = Path.of("/tmp/J2/");
-    if (Files.exists(hostCodeDir)) {
-      MoreFiles.deleteRecursively(hostCodeDir);
-    }
+  void testLog(@TempDir Path hostCodeDir) throws Exception {
     try (CloseablePath simple = PathUtils.fromUri(ContTests.class.getResource("simple/").toURI())) {
       copyCreateDir(simple, "pom.xml", hostCodeDir);
       copyCreateDir(simple, "Sandboxed.java",
@@ -63,7 +63,7 @@ public class ContTests {
       copyCreateDir(simple, "logback.xml", hostCodeDir.resolve("src/main/resources/"));
     }
 
-    DockerHelper dockerHelper = DockerHelper.create();
+    DockerHelperDraft dockerHelper = DockerHelperDraft.create();
     DockerClient dockerClient = dockerHelper.client();
 
     Optional<Network> extNet = dockerHelper.network(NETWORK_NAME);
@@ -99,10 +99,6 @@ public class ContTests {
 
   @Test
   void testHello(@TempDir Path hostCodeDir) throws Exception {
-    // Path hostCodeDir = Path.of("/tmp/J2/");
-    // if (Files.exists(hostCodeDir)) {
-    //   MoreFiles.deleteRecursively(hostCodeDir);
-    // }
     try (CloseablePath simple = PathUtils.fromUri(ContTests.class.getResource("simple/").toURI())) {
       copyCreateDir(simple, "pom.xml", hostCodeDir);
       copyCreateDir(Path.of(""), "src/main/java/io/github/oliviercailloux/jsand/Hello.java",
@@ -118,7 +114,7 @@ public class ContTests {
       Files.copy(simple.resolve("logback-conf.xml"), target);
       }
 
-    DockerHelper dockerHelper = DockerHelper.create();
+    DockerHelperDraft dockerHelper = DockerHelperDraft.create();
     DockerClient dockerClient = dockerHelper.client();
 
     Optional<Network> extNet = dockerHelper.network(NETWORK_NAME);
@@ -142,8 +138,8 @@ public class ContTests {
     System.setProperty("java.rmi.server.hostname", gateway);
     Registry registryJ1 = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
     LOGGER.info("Registry: {}", registryJ1);
-    HelloImpl hello = new HelloImpl();
-    Hello stub = (Hello) UnicastRemoteObject.exportObject(hello, 0);
+    ReadyServiceImpl hello = new ReadyServiceImpl();
+    ReadyService stub = (ReadyService) UnicastRemoteObject.exportObject(hello, 0);
     registryJ1.rebind("Hello", stub);
     RemoteLoggerService remoteLogger = (RemoteLoggerService) UnicastRemoteObject.exportObject(new RemoteLoggerImpl(), 0);
     registryJ1.rebind(RemoteLoggerService.SERVICE_NAME, remoteLogger);
@@ -169,11 +165,7 @@ public class ContTests {
   }
 
   @Test
-  void testLogFails() throws Exception {
-    Path hostCodeDir = Path.of("/tmp/J2/");
-    if (Files.exists(hostCodeDir)) {
-      MoreFiles.deleteRecursively(hostCodeDir);
-    }
+  void testLogFails(@TempDir Path hostCodeDir) throws Exception {
     try (CloseablePath simple = PathUtils.fromUri(ContTests.class.getResource("simple/").toURI())) {
       copyCreateDir(simple, "pom.xml", hostCodeDir);
       copyCreateDir(Path.of(""), "src/main/java/io/github/oliviercailloux/jsand/Hello.java",
@@ -189,7 +181,7 @@ public class ContTests {
       Files.copy(simple.resolve("logback-conf.xml"), target);
       }
 
-    DockerHelper dockerHelper = DockerHelper.create();
+    DockerHelperDraft dockerHelper = DockerHelperDraft.create();
     DockerClient dockerClient = dockerHelper.client();
 
     Optional<Network> extNet = dockerHelper.network(NETWORK_NAME);
@@ -213,8 +205,8 @@ public class ContTests {
     System.setProperty("java.rmi.server.hostname", gateway);
     Registry registryJ1 = LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
     LOGGER.info("Registry: {}", registryJ1);
-    HelloImpl hello = new HelloImpl();
-    Hello stub = (Hello) UnicastRemoteObject.exportObject(hello, 0);
+    ReadyServiceImpl hello = new ReadyServiceImpl();
+    ReadyService stub = (ReadyService) UnicastRemoteObject.exportObject(hello, 0);
     registryJ1.rebind("Hello", stub);
 
     ImmutableMap<String, String> roBinds = ImmutableMap.of(hostCodeDir.toString(),

@@ -1,4 +1,4 @@
-package io.github.oliviercailloux.jsand;
+package io.github.oliviercailloux.jsand.host;
 
 import static com.google.common.base.Verify.verify;
 
@@ -33,11 +33,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DockerHelper {
+class DockerHelperDraft {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(DockerHelper.class);
-  private static final Logger LOGGER_DOCKER_OUT = LoggerFactory.getLogger(DockerHelper.class + ".out");
-  private static final Logger LOGGER_DOCKER_ERR = LoggerFactory.getLogger(DockerHelper.class + ".err");
+  private static final Logger LOGGER = LoggerFactory.getLogger(DockerHelperDraft.class);
+  private static final Logger LOGGER_DOCKER_OUT = LoggerFactory.getLogger(DockerHelperDraft.class + ".out");
+  private static final Logger LOGGER_DOCKER_ERR = LoggerFactory.getLogger(DockerHelperDraft.class + ".err");
 
   public enum ConnectivityMode {
     EXTERNAL, INTERNAL
@@ -67,18 +67,18 @@ class DockerHelper {
     }
   }
 
-  public static DockerHelper create() {
+  public static DockerHelperDraft create() {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
     DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
         .dockerHost(config.getDockerHost()).sslConfig(config.getSSLConfig()).maxConnections(100)
         .connectionTimeout(Duration.ofSeconds(30)).responseTimeout(Duration.ofSeconds(45)).build();
     DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-    return new DockerHelper(dockerClient);
+    return new DockerHelperDraft(dockerClient);
   }
 
   private final DockerClient dockerClient;
 
-  public DockerHelper(DockerClient dockerClient) {
+  public DockerHelperDraft(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
   }
 

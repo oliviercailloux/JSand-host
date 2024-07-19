@@ -1,7 +1,6 @@
 package io.github.oliviercailloux.jsand;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import io.github.oliviercailloux.jsand.common.ReadyService;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import org.slf4j.Logger;
@@ -12,12 +11,11 @@ public class SendHello {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SendHello.class);
 
 	public static void main(String[] args) throws Exception {
-    LOGGER.info("Hosts: {}.", Files.readString(Path.of("/etc/hosts")));
     LOGGER.info("Starting client.");
     Registry registryJ1 = LocateRegistry.getRegistry("host.docker.internal", Registry.REGISTRY_PORT);
-    Hello hello = (Hello)registryJ1.lookup("Hello");
+    ReadyService hello = (ReadyService)registryJ1.lookup("Hello");
 
-    hello.hello();
+    hello.ready();
     LOGGER.info("Ending client.");
 	}
 }

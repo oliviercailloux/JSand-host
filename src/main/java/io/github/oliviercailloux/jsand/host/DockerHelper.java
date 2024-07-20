@@ -14,7 +14,6 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Network;
-import com.github.dockerjava.api.model.StreamType;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -33,11 +32,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class DockerHelperDraft {
+class DockerHelper {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(DockerHelperDraft.class);
-  private static final Logger LOGGER_DOCKER_OUT = LoggerFactory.getLogger(DockerHelperDraft.class + ".out");
-  private static final Logger LOGGER_DOCKER_ERR = LoggerFactory.getLogger(DockerHelperDraft.class + ".err");
+  private static final Logger LOGGER = LoggerFactory.getLogger(DockerHelper.class);
+  private static final Logger LOGGER_DOCKER_OUT = LoggerFactory.getLogger(DockerHelper.class + ".out");
+  private static final Logger LOGGER_DOCKER_ERR = LoggerFactory.getLogger(DockerHelper.class + ".err");
 
   public enum ConnectivityMode {
     EXTERNAL, INTERNAL
@@ -67,18 +66,18 @@ class DockerHelperDraft {
     }
   }
 
-  public static DockerHelperDraft create() {
+  public static DockerHelper create() {
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
     DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
         .dockerHost(config.getDockerHost()).sslConfig(config.getSSLConfig()).maxConnections(100)
         .connectionTimeout(Duration.ofSeconds(30)).responseTimeout(Duration.ofSeconds(45)).build();
     DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
-    return new DockerHelperDraft(dockerClient);
+    return new DockerHelper(dockerClient);
   }
 
   private final DockerClient dockerClient;
 
-  public DockerHelperDraft(DockerClient dockerClient) {
+  public DockerHelper(DockerClient dockerClient) {
     this.dockerClient = dockerClient;
   }
 
@@ -131,7 +130,7 @@ class DockerHelperDraft {
   }
 
   public String createContainer(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String gateway) {
+      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp) {
     CreateContainerCmd createCmd =
         dockerClient.createContainerCmd(imageName).withName(containerName);
     if (!workDir.isEmpty()) {
@@ -144,8 +143,8 @@ class DockerHelperDraft {
         .map(e -> new Bind(e.getKey(), new Volume(e.getValue()), AccessMode.ro))
         .collect(ImmutableSet.toImmutableSet());
     hostConfig.setBinds(binds.toArray(new Bind[0]));
-    if (!gateway.isEmpty()) {
-      hostConfig.withExtraHosts("host.docker.internal:" + gateway);
+    if (!hostIp.isEmpty()) {
+      hostConfig.withExtraHosts("host.docker.internal:" + hostIp);
     }
     hostConfig.withNetworkMode(networkName);
     CreateContainerResponse response = createCmd.exec();
@@ -157,15 +156,15 @@ class DockerHelperDraft {
   }
 
   public ExecutedContainer createAndExecLogging(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String gateway)
+      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp)
       throws InterruptedException {
         MemoryAdapter logger = new MemoryAdapter();
-        String id = createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, gateway, logger);
+        String id = createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
         return new ExecutedContainer(id, logger.out(), logger.err());
       }
 
   public String createAndExec(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String gateway)
+      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp)
       throws InterruptedException {
         ResultCallback.Adapter<Frame> logger = new ResultCallback.Adapter<>() {
           @Override
@@ -178,14 +177,14 @@ class DockerHelperDraft {
             slfLogger.info(new String(object.getPayload()));
           }
         };
-        return createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, gateway, logger);
+        return createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
           }
 
   private String createAndExec(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String gateway, ResultCallback.Adapter<Frame> logger)
+      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp, ResultCallback.Adapter<Frame> logger)
       throws InterruptedException {
     String id =
-        createContainer(imageName, containerName, workDir, networkName, roBinds, cmd, gateway);
+        createContainer(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp);
     dockerClient.startContainerCmd(id).exec();
 
     dockerClient.logContainerCmd(id).withStdOut(true).withStdErr(true).withFollowStream(true)

@@ -54,22 +54,8 @@ public class JavaSourcer {
     copyCreateDirTo(sourceDir.resolve(relative), target);
   }
 
-  public void copyLogbackSetup() throws IOException {
-    Class<?> clz = RemoteClientAppender.class;
-    CloseablePathFactory cls = PathUtils.fromResource(clz, clz.getSimpleName() + ".java");
-    copyCreateDirTo(cls, targetDir.resolve("src/main/resources/logback.xml"));
-    
-    
+  public void copyLogbackConf() throws IOException {
     CloseablePathFactory conf = PathUtils.fromResource(getClass(), "logback containerized configuration.xml");
-    
-    Document doc = DomHelper.domHelper().asDocument(conf);
-    Element confEl = doc.getDocumentElement();
-    verify(confEl.getTagName().equals("configuration"));
-    Element appenderEl = Iterables.getOnlyElement(DomHelper.toElements(confEl.getElementsByTagName("appender")));
-    verify(appenderEl.getTagName().equals("appender"));
-    String classAt = DomHelper.getAttribute(appenderEl, XmlName.localName("class"));
-    verify(classAt.equals(clz.getName()));
-    
     copyCreateDirTo(conf, targetDir.resolve("src/main/resources/logback.xml"));
   }
 }

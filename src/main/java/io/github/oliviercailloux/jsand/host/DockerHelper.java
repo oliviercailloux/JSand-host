@@ -8,6 +8,7 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.CreateNetworkCmd;
 import com.github.dockerjava.api.command.CreateNetworkResponse;
+import com.github.dockerjava.api.command.WaitContainerResultCallback;
 import com.github.dockerjava.api.model.AccessMode;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
@@ -35,8 +36,10 @@ import org.slf4j.LoggerFactory;
 class DockerHelper {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(DockerHelper.class);
-  private static final Logger LOGGER_DOCKER_OUT = LoggerFactory.getLogger(DockerHelper.class + ".out");
-  private static final Logger LOGGER_DOCKER_ERR = LoggerFactory.getLogger(DockerHelper.class + ".err");
+  private static final Logger LOGGER_DOCKER_OUT =
+      LoggerFactory.getLogger(DockerHelper.class + ".out");
+  private static final Logger LOGGER_DOCKER_ERR =
+      LoggerFactory.getLogger(DockerHelper.class + ".err");
 
   public enum ConnectivityMode {
     EXTERNAL, INTERNAL
@@ -48,7 +51,7 @@ class DockerHelper {
 
     @Override
     public void onNext(Frame object) {
-      StringBuilder dest = switch(object.getStreamType()) {
+      StringBuilder dest = switch (object.getStreamType()) {
         case STDOUT -> out;
         case STDERR -> err;
         case STDIN, RAW -> throw new VerifyException();
@@ -73,6 +76,10 @@ class DockerHelper {
         .connectionTimeout(Duration.ofSeconds(30)).responseTimeout(Duration.ofSeconds(45)).build();
     DockerClient dockerClient = DockerClientImpl.getInstance(config, httpClient);
     return new DockerHelper(dockerClient);
+  }
+
+  public static DockerHelper using(DockerClient client) {
+    return new DockerHelper(client);
   }
 
   private final DockerClient dockerClient;
@@ -155,34 +162,40 @@ class DockerHelper {
     return id;
   }
 
-  public ExecutedContainer createAndExecLogging(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp)
-      throws InterruptedException {
-        MemoryAdapter logger = new MemoryAdapter();
-        String id = createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
-        return new ExecutedContainer(id, logger.out(), logger.err());
-      }
+  public ExecutedContainer createAndExecLogging(String imageName, String containerName,
+      String workDir, String networkName, Map<String, String> roBinds, List<String> cmd,
+      String hostIp) throws InterruptedException {
+    MemoryAdapter logger = new MemoryAdapter();
+    String id =
+        createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
+
+    WaitContainerResultCallback cb = new WaitContainerResultCallback();
+    dockerClient.waitContainerCmd(id).exec(cb).awaitCompletion();
+    int status = cb.awaitStatusCode();
+    return new ExecutedContainer(id, status, logger.out(), logger.err());
+  }
 
   public String createAndExec(String imageName, String containerName, String workDir,
       String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp)
       throws InterruptedException {
-        ResultCallback.Adapter<Frame> logger = new ResultCallback.Adapter<>() {
-          @Override
-          public void onNext(Frame object) {
-            Logger slfLogger = switch(object.getStreamType()) {
-              case STDOUT -> LOGGER_DOCKER_OUT;
-              case STDERR -> LOGGER_DOCKER_ERR;
-              case STDIN, RAW -> throw new VerifyException();
-            };
-            slfLogger.info(new String(object.getPayload()));
-          }
+    ResultCallback.Adapter<Frame> logger = new ResultCallback.Adapter<>() {
+      @Override
+      public void onNext(Frame object) {
+        Logger slfLogger = switch (object.getStreamType()) {
+          case STDOUT -> LOGGER_DOCKER_OUT;
+          case STDERR -> LOGGER_DOCKER_ERR;
+          case STDIN, RAW -> throw new VerifyException();
         };
-        return createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
-          }
+        slfLogger.info(new String(object.getPayload()));
+      }
+    };
+    return createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp,
+        logger);
+  }
 
   private String createAndExec(String imageName, String containerName, String workDir,
-      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp, ResultCallback.Adapter<Frame> logger)
-      throws InterruptedException {
+      String networkName, Map<String, String> roBinds, List<String> cmd, String hostIp,
+      ResultCallback.Adapter<Frame> logger) throws InterruptedException {
     String id =
         createContainer(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp);
     dockerClient.startContainerCmd(id).exec();

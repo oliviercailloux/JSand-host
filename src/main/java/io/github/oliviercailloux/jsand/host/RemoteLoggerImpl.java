@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
-public class RemoteLoggerImpl implements RemoteLoggerService {
+class RemoteLoggerImpl implements RemoteLoggerService {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoteLoggerImpl.class);
 
@@ -14,7 +14,6 @@ public class RemoteLoggerImpl implements RemoteLoggerService {
   public void log(String originalLoggerName, Level level, Instant timeStamp, String message,
       Object[] argumentArray) {
     LOGGER.makeLoggingEventBuilder(level).log(message + "; original timestamp "
-        + timeStamp.toString() + "; original logger name " + originalLoggerName,
-        argumentArray);
+        + timeStamp.toString() + "; original logger name " + originalLoggerName, argumentArray);
   }
 }

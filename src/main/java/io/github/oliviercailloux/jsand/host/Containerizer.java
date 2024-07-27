@@ -2,16 +2,15 @@ package io.github.oliviercailloux.jsand.host;
 
 import static com.google.common.base.Verify.verify;
 
-import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Network;
 import com.github.dockerjava.api.model.Network.Ipam.Config;
-import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import io.github.oliviercailloux.jsand.host.DockerHelper.ConnectivityMode;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 public class Containerizer {
   private static final String IMAGE_NAME = "ghcr.io/oliviercailloux/djm-conf";
@@ -21,6 +20,10 @@ public class Containerizer {
   private static final String NETWORK_NAME = "JSand";
   private static final String NETWORK_NAME_ISOLATE = "JSandIsolate";
   private static final String RUN_CONTAINER_NAME = "JSandTestRun";
+
+  public static Containerizer usingPaths(Path hostCodeDir, Path mavenRepository) {
+    return new Containerizer(hostCodeDir, mavenRepository);
+  }
 
   private final Path hostCodeDir;
   private DockerHelper dockerHelper;
@@ -34,14 +37,21 @@ public class Containerizer {
     compileResult = null;
   }
 
-  public void removeCompileContainerIfExists() {
-    dockerHelper.container(COMPILE_CONTAINER_NAME)
-        .ifPresent(container -> dockerHelper.client().removeContainerCmd(container.getId()).exec());
+  public void removeContainersIfExist() {
+    dockerHelper.container(COMPILE_CONTAINER_NAME).ifPresent(this::remove);
+    dockerHelper.container(RUN_CONTAINER_NAME).ifPresent(this::remove);
   }
 
-  public void createNetworkIfNotExists() {
+  private void remove(Container container) {
+    dockerHelper.client().removeContainerCmd(container.getId()).exec();
+  }
+
+  public void createNetworksIfNotExist() {
     if (dockerHelper.network(NETWORK_NAME).isEmpty()) {
       dockerHelper.createNetwork(NETWORK_NAME);
+    }
+    if (dockerHelper.network(NETWORK_NAME_ISOLATE).isEmpty()) {
+      dockerHelper.createNetwork(NETWORK_NAME_ISOLATE, ConnectivityMode.INTERNAL);
     }
   }
 
@@ -64,18 +74,20 @@ public class Containerizer {
     if (compileResult == null) {
       throw new IllegalStateException("No image to run.");
     }
+    ImmutableList<String> runCmd = ImmutableList.of("mvn", "-B", "-Dexec.executable=java",
+        "-Dexec.mainClass=" + mainClass, "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
+    ExecutedContainer ran = dockerHelper.createAndExecLogging(compileResult.compiledImageId(),
+        RUN_CONTAINER_NAME, CONTAINER_CODE_DIR, NETWORK_NAME_ISOLATE, roBinds(), runCmd, hostIp());
+    return ran;
+  }
 
-    Network extIsolNet =
-        dockerHelper.network(NETWORK_NAME_ISOLATE).orElseThrow(VerifyException::new);
+  public String hostIp() {
+    Network extIsolNet = dockerHelper.network(NETWORK_NAME_ISOLATE)
+        .orElseThrow(() -> new IllegalStateException("No network."));
     List<Config> configs = extIsolNet.getIpam().getConfig();
     verify(configs.size() == 1);
     Config config = Iterables.getOnlyElement(configs);
     String hostIp = config.getGateway();
-
-    ImmutableList<String> runCmd = ImmutableList.of("mvn", "-B", "-Dexec.executable=java",
-        "-Dexec.mainClass=" + mainClass, "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
-    ExecutedContainer ran = dockerHelper.createAndExecLogging(compileResult.compiledImageId(),
-        RUN_CONTAINER_NAME, CONTAINER_CODE_DIR, NETWORK_NAME_ISOLATE, roBinds(), runCmd, hostIp);
-    return ran;
+    return hostIp;
   }
 }

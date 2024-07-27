@@ -5,13 +5,13 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReadyServiceImpl implements ReadyService {
+public class ReadyWaiter implements ReadyService {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(ReadyServiceImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ReadyWaiter.class);
 
   private final CountDownLatch latch;
 
-  public ReadyServiceImpl() {
+  public ReadyWaiter() {
     latch = new CountDownLatch(1);
   }
 

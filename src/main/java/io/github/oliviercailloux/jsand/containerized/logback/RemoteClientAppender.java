@@ -20,7 +20,7 @@ public class RemoteClientAppender extends AppenderBase<ILoggingEvent> {
     Registry registryJ1;
     try {
       registryJ1 = LocateRegistry.getRegistry(JSand.REGISTRY_HOST, Registry.REGISTRY_PORT);
-      remoteLogger = (RemoteLoggerService)registryJ1.lookup(RemoteLoggerService.SERVICE_NAME);
+      remoteLogger = (RemoteLoggerService)registryJ1.lookup(JSand.LOGGER_SERVICE_NAME);
     } catch (RemoteException|NotBoundException e) {
       throw new RuntimeException(e);
     }

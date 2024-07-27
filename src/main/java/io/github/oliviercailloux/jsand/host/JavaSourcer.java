@@ -45,13 +45,14 @@ public class JavaSourcer {
 
   public void copyCreateDir(CloseablePathFactory sourceDir, String relative) throws IOException {
     try (CloseablePath p = sourceDir.path()) {
-      copyCreateDir(p.delegate(), p.getFileSystem().getPath(relative));
+      copyCreateDir(p.delegate(), relative);
     }
   }
 
-  public void copyCreateDir(Path sourceDir, Path relative) throws IOException {
-    Path target = PathUtils.resolve(targetDir, relative);
-    copyCreateDirTo(sourceDir.resolve(relative), target);
+  public void copyCreateDir(Path sourceDir, String relative) throws IOException {
+    Path relativePath = sourceDir.getFileSystem().getPath(relative);
+    Path target = PathUtils.resolve(targetDir, relativePath);
+    copyCreateDirTo(sourceDir.resolve(relativePath), target);
   }
 
   public void copyLogbackConf() throws IOException {

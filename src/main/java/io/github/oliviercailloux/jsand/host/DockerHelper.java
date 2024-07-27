@@ -169,10 +169,15 @@ class DockerHelper {
     String id =
         createAndExec(imageName, containerName, workDir, networkName, roBinds, cmd, hostIp, logger);
 
+    int status = status(id);
+    return new ExecutedContainer(id, status, logger.out(), logger.err());
+  }
+
+  public int status(String id) throws InterruptedException {
     WaitContainerResultCallback cb = new WaitContainerResultCallback();
     dockerClient.waitContainerCmd(id).exec(cb).awaitCompletion();
     int status = cb.awaitStatusCode();
-    return new ExecutedContainer(id, status, logger.out(), logger.err());
+    return status;
   }
 
   public String createAndExec(String imageName, String containerName, String workDir,

@@ -1,5 +1,6 @@
 package io.github.oliviercailloux.jsand.host;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
 import com.github.dockerjava.api.model.Container;
@@ -61,6 +62,8 @@ public class Containerizer {
         CONTAINER_CODE_DIR, NETWORK_NAME, roBinds(), compileCmd);
 
     String compiledImageId = dockerHelper.client().commitCmd(compileContainerId).exec();
+    int status = dockerHelper.status(compileContainerId);
+    checkState(status == 0, "Compilation failed.");
     compileResult = new CompileContainedResult(compileContainerId, compiledImageId);
     return compileResult;
   }

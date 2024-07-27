@@ -19,7 +19,7 @@ public class JavaSourcerTests {
   @Test
   void testJavaSourcer(@TempDir(cleanup = CleanupMode.ON_SUCCESS) Path hostCodeDir) throws Exception {
     JavaSourcer sourcer = JavaSourcer.targetDir(hostCodeDir);
-    CloseablePathFactory simple = PathUtils.fromUri(ContainerizerTests.class.getResource("simple/").toURI());
+    CloseablePathFactory simple = PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
     JavaSourcer.copyCreateDirTo(simple.resolve("Sandboxed.java"),
         hostCodeDir.resolve("src/main/java/io/github/oliviercailloux/simple/Sandboxed.java"));

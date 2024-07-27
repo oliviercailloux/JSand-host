@@ -1,14 +1,15 @@
 package io.github.oliviercailloux.jsand.host;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
 import io.github.oliviercailloux.jaris.io.PathUtils;
 import io.github.oliviercailloux.jsand.containerized.LoadOneClass;
 import io.github.oliviercailloux.jsand.containerized.SendReady;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.rmi.registry.LocateRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,6 +27,7 @@ public class ContainerizerTests {
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
     Path root = Path.of("");
+    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/ClassSenderService.java");
     sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/JSand.java");
     sourcer.copyCreateDir(root,
     "src/main/java/io/github/oliviercailloux/jsand/common/ReadyService.java");
@@ -45,7 +47,7 @@ public class ContainerizerTests {
 
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
-    registerer.createRegistry();
+    registerer.ensureRegistry();
     ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
     registerer.registerLogger();
 
@@ -75,21 +77,19 @@ public class ContainerizerTests {
     Containerizer containerizer =
         Containerizer.usingPaths(hostCodeDir, Path.of("/home/olivier/.m2/repository/"));
     containerizer.createNetworksIfNotExist();
-    containerizer.removeContainersIfExist();
 
     containerizer.compile();
 
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
-    registerer.createRegistry();
-    ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
+    registerer.ensureRegistry();
     registerer.registerLogger();
     registerer.registerClassSender(new ClassSenderImpl());
 
     ExecutedContainer ran = containerizer.run(LoadOneClass.class.getName());
     assertTrue(ran.err().length() < 10, ran.err());
     assertTrue(ran.out().contains("BUILD SUCCESS"));
-    readyWaiter.latch().await();
+    assertEquals(0, ran.exitCode());
 
     containerizer.removeContainersIfExist();
   }
@@ -101,6 +101,7 @@ public class ContainerizerTests {
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
     Path root = Path.of("");
+    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/ClassSenderService.java");
     sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/JSand.java");
     sourcer.copyCreateDir(root,
     "src/main/java/io/github/oliviercailloux/jsand/common/ReadyService.java");
@@ -120,7 +121,7 @@ public class ContainerizerTests {
 
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
-    registerer.createRegistry();
+    registerer.ensureRegistry();
     ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
 
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());

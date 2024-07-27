@@ -43,6 +43,21 @@ public class Registerer {
     return registry;
   }
 
+  public Registry ensureRegistry() {
+    try {
+      registry = LocateRegistry.getRegistry();
+      registry.list();
+    } catch (RemoteException e) {
+      if (e instanceof java.rmi.ConnectException) {
+        LOGGER.debug("Looked for registry, got {}; creating one.", e);
+        registry = createRegistry();
+      } else {
+        throw new IllegalStateException(e);
+      }
+    }
+    return registry;
+  }
+
   public void registerLogger() {
     checkState(registry != null);
     register(JSand.LOGGER_SERVICE_NAME, new RemoteLoggerImpl());
@@ -59,7 +74,7 @@ public class Registerer {
     checkState(registry != null);
     register(JSand.CLASS_SENDER_SERVICE_NAME, classSender);
   }
-  
+
   public void register(String name, Remote impl) {
     checkState(registry != null);
     try {

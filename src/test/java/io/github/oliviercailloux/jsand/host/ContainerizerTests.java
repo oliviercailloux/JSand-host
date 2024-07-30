@@ -26,15 +26,6 @@ public class ContainerizerTests {
     CloseablePathFactory simple =
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
-    Path root = Path.of("");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/ClassSenderService.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/JSand.java");
-    sourcer.copyCreateDir(root,
-    "src/main/java/io/github/oliviercailloux/jsand/common/ReadyService.java");
-    sourcer.copyCreateDir(root,
-    "src/main/java/io/github/oliviercailloux/jsand/common/RemoteLoggerService.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/containerized/HostRegistry.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/containerized/logback/RemoteClientAppender.java");
     String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
     JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource), hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
     sourcer.copyLogbackConf();
@@ -65,13 +56,9 @@ public class ContainerizerTests {
     CloseablePathFactory simple =
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
-    Path root = Path.of("");
-    Path destBase = hostCodeDir.resolve("src/main/java/io/github/oliviercailloux/jsand/");
-    Files.createDirectories(destBase);
-    PathUtils.copyRecursively(root.resolve("src/main/java/io/github/oliviercailloux/jsand/common/"), destBase.resolve("common/"));
-    PathUtils.copyRecursively(root.resolve("src/main/java/io/github/oliviercailloux/jsand/containerized/"), destBase.resolve("containerized/"));
     String loadOneClassSource = "io/github/oliviercailloux/jsand/containerized/LoadOneClass.java";
-    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(loadOneClassSource), hostCodeDir.resolve("src/main/java/").resolve(loadOneClassSource));
+    Path target = hostCodeDir.resolve("src/main/java/").resolve(loadOneClassSource);
+    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(loadOneClassSource), target);
     sourcer.copyLogbackConf();
 
     Containerizer containerizer =
@@ -100,15 +87,6 @@ public class ContainerizerTests {
     CloseablePathFactory simple =
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
-    Path root = Path.of("");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/ClassSenderService.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/common/JSand.java");
-    sourcer.copyCreateDir(root,
-    "src/main/java/io/github/oliviercailloux/jsand/common/ReadyService.java");
-    sourcer.copyCreateDir(root,
-    "src/main/java/io/github/oliviercailloux/jsand/common/RemoteLoggerService.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/containerized/HostRegistry.java");
-    sourcer.copyCreateDir(root, "src/main/java/io/github/oliviercailloux/jsand/containerized/logback/RemoteClientAppender.java");
     String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
     JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource), hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
     sourcer.copyLogbackConf();

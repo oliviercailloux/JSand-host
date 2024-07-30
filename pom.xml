@@ -22,6 +22,11 @@
 			<artifactId>jsand-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.oliviercailloux</groupId>
+			<artifactId>jsand-containerized</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
     <dependency>
       <groupId>com.github.docker-java</groupId>
       <artifactId>docker-java-core</artifactId>
@@ -32,11 +37,5 @@
       <artifactId>docker-java-transport-httpclient5</artifactId>
       <version>3.3.6</version>
     </dependency>
-
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.4.7</version>
-		</dependency>
 	</dependencies>
 </project>

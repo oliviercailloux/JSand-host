@@ -41,7 +41,7 @@ public class ContainerizerTests {
     registerer.setHostIp(containerizer.hostIp());
     registerer.ensureRegistry();
     registerer.registerLogger();
-    ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
+    final ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
     
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());
     assertTrue(ran.err().length() < 10, ran.err());
@@ -103,7 +103,7 @@ public class ContainerizerTests {
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
     registerer.ensureRegistry();
-    ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
+    final ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
 
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());
     assertTrue(ran.err().contains("Failed to initialize Configurator"));

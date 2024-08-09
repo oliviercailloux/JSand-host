@@ -15,8 +15,8 @@ public class ClassSenderImpl implements ClassSenderService {
   private final byte[] bytes;
 
   public ClassSenderImpl() {
-    URL classUrl = getClass()
-        .getResource("../containerized/UniverseAndEverythingIntSupplier.class");
+    URL classUrl =
+        getClass().getResource("../containerized/UniverseAndEverythingIntSupplier.class");
     try {
       bytes = Resources.toByteArray(classUrl);
     } catch (IOException e) {
@@ -26,7 +26,8 @@ public class ClassSenderImpl implements ClassSenderService {
 
   @Override
   public byte[] clazz(String name) throws ClassNotFoundException {
-    if (!name.equals("io.github.oliviercailloux.jsand.containerized.UniverseAndEverythingIntSupplier")) {
+    if (!name
+        .equals("io.github.oliviercailloux.jsand.containerized.UniverseAndEverythingIntSupplier")) {
       throw new ClassNotFoundException("Unknown class: " + name);
     }
     LOGGER.info("Asked for class {}, returning {} bytes.", name, bytes.length);

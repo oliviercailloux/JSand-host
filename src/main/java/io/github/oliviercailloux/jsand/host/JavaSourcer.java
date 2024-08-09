@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 public class JavaSourcer {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourcer.class);
-  
+
   public static void copyCreateDirTo(CloseablePathFactory source, Path target) throws IOException {
     try (CloseablePath p = source.path()) {
       copyCreateDirTo(p.delegate(), target);
@@ -36,7 +36,7 @@ public class JavaSourcer {
   public static JavaSourcer targetDir(Path targetDir) {
     return new JavaSourcer(targetDir);
   }
-  
+
   private final Path targetDir;
 
   private JavaSourcer(Path targetDir) {
@@ -56,7 +56,8 @@ public class JavaSourcer {
   }
 
   public void copyLogbackConf() throws IOException {
-    CloseablePathFactory conf = PathUtils.fromResource(getClass(), "logback containerized configuration.xml");
+    CloseablePathFactory conf =
+        PathUtils.fromResource(getClass(), "logback containerized configuration.xml");
     copyCreateDirTo(conf, targetDir.resolve("src/main/resources/logback.xml"));
   }
 }

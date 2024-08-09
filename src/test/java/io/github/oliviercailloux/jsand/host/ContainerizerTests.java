@@ -27,7 +27,8 @@ public class ContainerizerTests {
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
     String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
-    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource), hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
+    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource),
+        hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
     sourcer.copyLogbackConf();
 
     Containerizer containerizer =
@@ -51,7 +52,8 @@ public class ContainerizerTests {
   }
 
   @Test
-  void testLoadOneClass(@TempDir(cleanup = CleanupMode.ON_SUCCESS) Path hostCodeDir) throws Exception {
+  void testLoadOneClass(@TempDir(cleanup = CleanupMode.ON_SUCCESS) Path hostCodeDir)
+      throws Exception {
     JavaSourcer sourcer = JavaSourcer.targetDir(hostCodeDir);
     CloseablePathFactory simple =
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
@@ -88,7 +90,8 @@ public class ContainerizerTests {
         PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
     sourcer.copyCreateDir(simple, "pom.xml");
     String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
-    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource), hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
+    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource),
+        hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
     sourcer.copyLogbackConf();
 
     Containerizer containerizer =

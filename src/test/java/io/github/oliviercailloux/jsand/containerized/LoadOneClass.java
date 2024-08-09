@@ -21,20 +21,21 @@ public class LoadOneClass {
     try {
       l.loadClass("io.github.oliviercailloux.jsand.containerized.DoesNotExist");
     } catch (ClassNotFoundException e) {
-      caught=true;
+      caught = true;
       LOGGER.info("Caught: {}.", e);
     }
 
-    String className = "io.github.oliviercailloux.jsand.containerized.UniverseAndEverythingIntSupplier";
+    String className =
+        "io.github.oliviercailloux.jsand.containerized.UniverseAndEverythingIntSupplier";
     Class<?> clazz = l.loadClass(className);
     ImmutableSet<Constructor<?>> constrs = ImmutableSet.copyOf(clazz.getDeclaredConstructors());
     Constructor<?> constr = Iterables.getOnlyElement(constrs);
     IntSupplier impl = (IntSupplier) constr.newInstance();
     LOGGER.info("The answer: {}.", impl.getAsInt());
     int status;
-    if (caught && impl.getAsInt() == 42){
+    if (caught && impl.getAsInt() == 42) {
       status = 0;
-    }  else {
+    } else {
       status = 1;
     }
     System.exit(status);

@@ -40,13 +40,12 @@ public class ContainerizerTests {
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
     registerer.ensureRegistry();
-    ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
     registerer.registerLogger();
-
+    
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());
     assertTrue(ran.err().length() < 10, ran.err());
     assertTrue(ran.out().contains("BUILD SUCCESS"));
-    readyWaiter.latch().await();
+    registerer.registerReadyWaiter().latch().await();
 
     containerizer.removeContainersIfExist();
   }
@@ -103,14 +102,12 @@ public class ContainerizerTests {
     Registerer registerer = Registerer.create();
     registerer.setHostIp(containerizer.hostIp());
     registerer.ensureRegistry();
-    ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
-
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());
 
     assertTrue(ran.err().contains("Failed to initialize Configurator"));
     assertTrue(ran.err().contains("java.rmi.NotBoundException: Logger"));
     assertTrue(ran.out().contains("BUILD SUCCESS"));
-    readyWaiter.latch().await();
+    registerer.registerReadyWaiter().latch().await();
 
     containerizer.removeContainersIfExist();
   }

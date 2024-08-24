@@ -61,7 +61,7 @@ public class Containerizer {
   public void setProfile(String profile) {
     this.profile = profile;
   }
-  
+
   public CompileContainedResult compile() throws InterruptedException {
     ImmutableList.Builder<String> commandBuilder = ImmutableList.builder();
     commandBuilder.add("mvn", "-B");
@@ -95,10 +95,10 @@ public class Containerizer {
     if (!profile.isEmpty()) {
       commandBuilder.add("-P" + profile);
     }
-    commandBuilder.add("-Dexec.executable=java",
-    "-Dexec.mainClass=" + mainClass, "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
+    commandBuilder.add("-Dexec.executable=java", "-Dexec.mainClass=" + mainClass,
+        "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
     ImmutableList<String> command = commandBuilder.build();
-    
+
     ExecutedContainer ran = dockerHelper.createAndExecLogging(compileResult.compiledImageId(),
         RUN_CONTAINER_NAME, CONTAINER_CODE_DIR, NETWORK_NAME_ISOLATE, roBinds(), command, hostIp());
     return ran;

@@ -1,6 +1,7 @@
 package io.github.oliviercailloux.jsand.host;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
@@ -42,11 +43,65 @@ public class ContainerizerTests {
     registerer.ensureRegistry();
     registerer.registerLogger();
     final ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
-    
+
     ExecutedContainer ran = containerizer.run(SendReady.class.getName());
     assertTrue(ran.err().length() < 10, ran.err());
     assertTrue(ran.out().contains("BUILD SUCCESS"));
     readyWaiter.latch().await();
+
+    containerizer.removeContainersIfExist();
+  }
+
+  @Test
+  void testReadyProfile(@TempDir Path hostCodeDir) throws Exception {
+    JavaSourcer sourcer = JavaSourcer.targetDir(hostCodeDir);
+    CloseablePathFactory simple =
+        PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
+    JavaSourcer.copyCreateDirTo(simple.resolve("pom with profile.xml"),
+        hostCodeDir.resolve("pom.xml"));
+    String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
+    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource),
+        hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
+    sourcer.copyLogbackConf();
+
+    Containerizer containerizer =
+        Containerizer.usingPaths(hostCodeDir, Path.of("/home/olivier/.m2/repository/"));
+    containerizer.setProfile("my profile");
+    containerizer.createNetworksIfNotExist();
+
+    containerizer.compile();
+
+    Registerer registerer = Registerer.create();
+    registerer.setHostIp(containerizer.hostIp());
+    registerer.ensureRegistry();
+    registerer.registerLogger();
+    final ReadyWaiter readyWaiter = registerer.registerReadyWaiter();
+
+    ExecutedContainer ran = containerizer.run(SendReady.class.getName());
+    assertTrue(ran.err().length() < 10, ran.err());
+    assertTrue(ran.out().contains("BUILD SUCCESS"));
+    readyWaiter.latch().await();
+
+    containerizer.removeContainersIfExist();
+  }
+
+  @Test
+  void testReadyFailsWithWrongProfile(@TempDir Path hostCodeDir) throws Exception {
+    JavaSourcer sourcer = JavaSourcer.targetDir(hostCodeDir);
+    CloseablePathFactory simple =
+        PathUtils.fromUri(ContainerizerTests.class.getResource("../containerized/simple/").toURI());
+    JavaSourcer.copyCreateDirTo(simple.resolve("pom with profile.xml"),
+        hostCodeDir.resolve("pom.xml"));
+    String sendReadySource = "io/github/oliviercailloux/jsand/containerized/SendReady.java";
+    JavaSourcer.copyCreateDirTo(Path.of("src/test/java/").resolve(sendReadySource),
+        hostCodeDir.resolve("src/main/java/").resolve(sendReadySource));
+    sourcer.copyLogbackConf();
+
+    Containerizer containerizer =
+        Containerizer.usingPaths(hostCodeDir, Path.of("/home/olivier/.m2/repository/"));
+    containerizer.createNetworksIfNotExist();
+
+    assertThrows(IllegalStateException.class, () -> containerizer.compile());
 
     containerizer.removeContainersIfExist();
   }

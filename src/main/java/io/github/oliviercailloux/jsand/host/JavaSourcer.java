@@ -1,21 +1,13 @@
 package io.github.oliviercailloux.jsand.host;
 
-import static com.google.common.base.Verify.verify;
-
-import com.google.common.collect.Iterables;
 import io.github.oliviercailloux.jaris.io.CloseablePath;
 import io.github.oliviercailloux.jaris.io.CloseablePathFactory;
 import io.github.oliviercailloux.jaris.io.PathUtils;
-import io.github.oliviercailloux.jaris.xml.DomHelper;
-import io.github.oliviercailloux.jaris.xml.XmlName;
-import io.github.oliviercailloux.jsand.containerized.logback.RemoteClientAppender;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 public class JavaSourcer {
   @SuppressWarnings("unused")

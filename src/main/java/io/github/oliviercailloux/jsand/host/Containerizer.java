@@ -30,12 +30,14 @@ public class Containerizer {
   private DockerHelper dockerHelper;
   private final Path hostMavenRepository;
   private CompileContainedResult compileResult;
+  private String profile;
 
   private Containerizer(Path hostCodeDir, Path mavenRepository) {
     this.hostCodeDir = hostCodeDir;
     dockerHelper = DockerHelper.create();
     this.hostMavenRepository = mavenRepository;
     compileResult = null;
+    profile = "";
   }
 
   public void removeContainersIfExist() {
@@ -56,20 +58,20 @@ public class Containerizer {
     }
   }
 
-  public CompileContainedResult compile() throws InterruptedException {
-    return compile("");
+  public void setProfile(String profile) {
+    this.profile = profile;
   }
-
-  public CompileContainedResult compile(String profile) throws InterruptedException {
+  
+  public CompileContainedResult compile() throws InterruptedException {
     ImmutableList.Builder<String> commandBuilder = ImmutableList.builder();
     commandBuilder.add("mvn", "-B");
     if (!profile.isEmpty()) {
       commandBuilder.add("-P" + profile);
     }
     commandBuilder.add("compile");
-    ImmutableList<String> compileCmd = commandBuilder.build();
+    ImmutableList<String> command = commandBuilder.build();
     String compileContainerId = dockerHelper.createAndExec(IMAGE_NAME, COMPILE_CONTAINER_NAME,
-        CONTAINER_CODE_DIR, NETWORK_NAME, roBinds(), compileCmd);
+        CONTAINER_CODE_DIR, NETWORK_NAME, roBinds(), command);
 
     String compiledImageId = dockerHelper.client().commitCmd(compileContainerId).exec();
     int status = dockerHelper.status(compileContainerId);
@@ -87,10 +89,18 @@ public class Containerizer {
     if (compileResult == null) {
       throw new IllegalStateException("No image to run.");
     }
-    ImmutableList<String> runCmd = ImmutableList.of("mvn", "-B", "-Dexec.executable=java",
-        "-Dexec.mainClass=" + mainClass, "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
+
+    ImmutableList.Builder<String> commandBuilder = ImmutableList.builder();
+    commandBuilder.add("mvn", "-B");
+    if (!profile.isEmpty()) {
+      commandBuilder.add("-P" + profile);
+    }
+    commandBuilder.add("-Dexec.executable=java",
+    "-Dexec.mainClass=" + mainClass, "org.codehaus.mojo:exec-maven-plugin:3.3.0:exec");
+    ImmutableList<String> command = commandBuilder.build();
+    
     ExecutedContainer ran = dockerHelper.createAndExecLogging(compileResult.compiledImageId(),
-        RUN_CONTAINER_NAME, CONTAINER_CODE_DIR, NETWORK_NAME_ISOLATE, roBinds(), runCmd, hostIp());
+        RUN_CONTAINER_NAME, CONTAINER_CODE_DIR, NETWORK_NAME_ISOLATE, roBinds(), command, hostIp());
     return ran;
   }
 

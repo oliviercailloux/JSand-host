@@ -57,7 +57,17 @@ public class Containerizer {
   }
 
   public CompileContainedResult compile() throws InterruptedException {
-    ImmutableList<String> compileCmd = ImmutableList.of("mvn", "-B", "compile");
+    return compile("");
+  }
+
+  public CompileContainedResult compile(String profile) throws InterruptedException {
+    ImmutableList.Builder<String> commandBuilder = ImmutableList.builder();
+    commandBuilder.add("mvn", "-B");
+    if (!profile.isEmpty()) {
+      commandBuilder.add("-P" + profile);
+    }
+    commandBuilder.add("compile");
+    ImmutableList<String> compileCmd = commandBuilder.build();
     String compileContainerId = dockerHelper.createAndExec(IMAGE_NAME, COMPILE_CONTAINER_NAME,
         CONTAINER_CODE_DIR, NETWORK_NAME, roBinds(), compileCmd);
 

@@ -8,13 +8,13 @@ import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClassSenderImpl implements ClassSenderService {
+public class SingleClassSenderImpl implements ClassSenderService {
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClassSenderImpl.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SingleClassSenderImpl.class);
 
   private final byte[] bytes;
 
-  public ClassSenderImpl() {
+  public SingleClassSenderImpl() {
     URL classUrl =
         getClass().getResource("../containerized/UniverseAndEverythingIntSupplier.class");
     try {

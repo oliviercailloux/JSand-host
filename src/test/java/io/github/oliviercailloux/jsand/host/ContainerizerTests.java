@@ -128,7 +128,7 @@ public class ContainerizerTests {
     registerer.setHostIp(containerizer.hostIp());
     registerer.ensureRegistry();
     registerer.registerLogger();
-    registerer.registerClassSender(new ClassSenderImpl());
+    registerer.registerClassSender(new SingleClassSenderImpl());
 
     ExecutedContainer ran = containerizer.run(LoadOneClass.class.getName());
     assertTrue(ran.err().length() < 10, ran.err());

@@ -2,13 +2,17 @@ package io.github.oliviercailloux.jsand.host;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.VerifyException;
 import io.github.oliviercailloux.jsand.common.ClassSenderService;
 import io.github.oliviercailloux.jsand.common.JSand;
+import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +28,11 @@ public class Registerer {
 
   private Registry registry;
 
+  private final Set<Remote> exporteds;
+
   public Registerer() {
     registry = null;
+    exporteds = new LinkedHashSet<>();
   }
 
   public void setHostIp(String ip) {
@@ -39,6 +46,7 @@ public class Registerer {
     } catch (RemoteException e) {
       throw new IllegalStateException(e);
     }
+    exporteds.add(registry);
     LOGGER.info("Created registry: {}", registry);
     return registry;
   }
@@ -80,6 +88,18 @@ public class Registerer {
     try {
       Remote stub = UnicastRemoteObject.exportObject(impl, 0);
       registry.rebind(name, stub);
+    } catch (RemoteException e) {
+      throw new IllegalStateException(e);
+    }
+    exporteds.add(impl);
+  }
+
+  public void unexport() {
+    try {
+      for (Remote toUnexport : exporteds) {
+        boolean wasExported = UnicastRemoteObject.unexportObject(toUnexport, false);
+        checkState(wasExported, "Could not unexport: %s.", toUnexport);
+      }
     } catch (RemoteException e) {
       throw new IllegalStateException(e);
     }

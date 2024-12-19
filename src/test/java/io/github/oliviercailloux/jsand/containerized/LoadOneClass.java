@@ -15,7 +15,7 @@ public class LoadOneClass {
   public static void main(String[] args) throws Exception {
     HostRegistry hostRegistry = HostRegistry.access();
     ClassSenderService classSenderService = hostRegistry.classSenderService();
-    ClassLoader l = new ClassFetcher(classSenderService);
+    ClassLoader l = ClassFetcher.create(classSenderService);
 
     boolean caught = false;
     try {

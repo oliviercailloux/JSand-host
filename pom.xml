@@ -7,7 +7,7 @@
     <version>0.0.22</version>
   </parent>
 	<artifactId>jsand-host</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 
 	<dependencies>
 		<dependency>
